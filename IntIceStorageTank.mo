@@ -1,14 +1,35 @@
+within ;
+model IntIceStorageTank "Ice storage tank with external metling mode."
+  Modelica.Blocks.Sources.RealExpression realExpression(y=-q2)
+    annotation (Placement(transformation(extent={{-90,-46},{-70,-26}})));
+  Buildings.HeatTransfer.Sources.PrescribedHeatFlow prescribedHeatFlow
+    annotation (Placement(transformation(extent={{-58,-46},{-38,-26}})));
+  Modelica.Blocks.Sources.RealExpression realExpression1(y=q1)
+    annotation (Placement(transformation(extent={{-86,34},{-66,54}})));
+  Buildings.HeatTransfer.Sources.PrescribedHeatFlow prescribedHeatFlow1
+    annotation (Placement(transformation(extent={{-54,34},{-34,54}})));
+ extends Buildings.Fluid.Interfaces.FourPortHeatMassExchanger;
+  import Modelica.Constants.pi;
+  import Modelica.Math.log;
 
+  //Geometry parameters
+  parameter Integer N=48 "Number of tubes in pararll";
+  parameter Modelica.SIunits.Length L=150 "The length of the tube";
+  parameter Modelica.SIunits.Radius ri= 11e-3 "The inner tube inner diameter";
+  parameter Modelica.SIunits.Radius ro= 14.25e-3 "The inner tube outer diameter";
+  parameter Modelica.SIunits.Volume Vt= 6*2.8*2.8 "The volume of the tank";
+  parameter Modelica.SIunits.Area A_cross= 2.8*2.8 "The Area of the tank that water flow through";
+  Modelica.SIunits.Volume Vw( min=0)= Vt-pi*r^2*L*N "The volume of the water";
 
  //Thermal propertiy parameters
   parameter Modelica.SIunits.ThermalConductivity kl=15 "Thermal conductivity of tube";
-  Modelica.SIunits.Temperature Tm=273.15 "Freezing temperature of water";
-  Modelica.SIunits.ThermalConductivity k=2.22 "Thermal conductivity of ice";
-  Modelica.SIunits.Density rho_ice=920 "Density of water";
-  Modelica.SIunits.SpecificEnergy ql=334000 "specific energy for ice freezing";
+  parameter Modelica.SIunits.Temperature Tm=273.15 "Freezing temperature of water";
+  parameter Modelica.SIunits.ThermalConductivity k=2.22 "Thermal conductivity of ice";
+  parameter Modelica.SIunits.Density rho_ice=920 "Density of water";
+  parameter Modelica.SIunits.SpecificEnergy ql=334000 "specific energy for ice freezing";
   Real Q;
 
-  //Thermal properties of the Medium1
+  // Readed thermal properties of the Medium1
 
   Medium1.ThermodynamicState sta_a11=Medium1.setState_phX(port_a1.p, inStream(port_a1.h_outflow), inStream(port_a1.Xi_outflow))  "Medium properties in port_a1";
   Modelica.SIunits.Temperature Tin1=Medium1.temperature(sta_a11)  "Inlet chilled liquid temperature";
@@ -60,6 +81,31 @@
         iconTransformation(extent={{100,-100},{120,-80}})));
   Modelica.Blocks.Interfaces.RealOutput q_Charge=q1
     annotation (Placement(transformation(extent={{-100,76},{-120,96}})));
+
+equation
+  if noEvent(m1_flow>0.001) then
+   R1=r/ri*(1/hi1+F+C)+r/kl*log(ro/ri)+r/k*log(r/ro);
+  q1=2*pi*r*L*dT1/R1*N;
+  else
+     R1= Modelica.Constants.inf;
+     q1=0;
+  end if;
+
+  der(r)=(q1-q2)/(2*pi*ro*L*N*rho_ice*ql*(r/ro));
+  q2=m2_flow*cp2*(Tin2-Tm);
+  Q=rho_ice*pi*(r^2-ro^2)*L*N*ql/3600/1000;
+
+  if r>ro then
+    Ice_remind=1;
+  else
+    Ice_remind=0;
+  end if;
+
+  connect(realExpression.y, prescribedHeatFlow.Q_flow) annotation (Line(points={{-69,-36},{-58,-36}}, color={0,0,127}));
+
+  connect(prescribedHeatFlow.port, vol2.heatPort) annotation (Line(points={{-38,-36},{22,-36},{22,-60},{12,-60}}, color={191,0,0}));
+  connect(prescribedHeatFlow1.port, vol1.heatPort) annotation (Line(points={{-34,44},{-24,44},{-24,60},{-10,60}}, color={191,0,0}));
+  connect(prescribedHeatFlow1.Q_flow, realExpression1.y) annotation (Line(points={{-54,44},{-65,44}}, color={0,0,127}));
   annotation (Icon(coordinateSystem(preserveAspectRatio=false), graphics={
         Ellipse(
           extent={{-46,18},{-6,-22}},
@@ -96,7 +142,21 @@
           lineColor={28,108,200},
           fillColor={170,213,255},
           fillPattern=FillPattern.Solid),
-
+        Ellipse(
+          extent={{-10,-32},{8,-50}},
+          lineColor={28,108,200},
+          fillColor={255,255,255},
+          fillPattern=FillPattern.Solid),
+        Ellipse(
+          extent={{30,-20},{70,-60}},
+          lineColor={28,108,200},
+          fillColor={170,213,255},
+          fillPattern=FillPattern.Solid),
+        Ellipse(
+          extent={{40,-32},{58,-50}},
+          lineColor={28,108,200},
+          fillColor={255,255,255},
+          fillPattern=FillPattern.Solid),
         Ellipse(
           extent={{-70,60},{-30,20}},
           lineColor={28,108,200},
@@ -146,9 +206,7 @@
 <p><br>According to the heat and mass balance, the cooling provided by ice melting is equal to the cooling energy taken by the water on the secondary side of the heat exchanger:</p>
 <p align=\"center\"><img src=\"modelica://IntIceStorageTank/Resources/Images/equations/equation-bATPqmSt.png\" alt=\"-gamma_icer*der(m_ice)=Q_discharge\"/></p>
 <p><br><br><br><br>During the discharging process, the mass of ice and the cooling energy stored can be calculated the same as the charging process.</p>
-<p><br><br><br><br><b><span style=\"font-family: Arial; font-size: 10pt;\">Reference</span></b>:</p>
-<p>Jia L.Z., Liu J.J., Adrian C.,and Dai X.L.<sup>*</sup>. Deep learning and physics-based modeling for the optimization of ice-based thermal energy systems in cooling plants, <span style=\"color: #ff0000;\">Applied Energy xxxx </span>(Modelica model ) </p>
-<p>Alex H.W. Lee, Jerold W. Jones, Modeling of an ice-on-coil thermal energy storage system,Energy Conversion and Management, Volume 37, Issue 10,1996, Pages 1493-1507. https://doi.org/10.1016/0196-8904(95)00224-3 (Mathmetic model).</p>
+<p><br><br><br><br><b><span style=\"font-family: Arial; font-size: 10pt;\">Reference</span></b>:Alex H.W. Lee, Jerold W. Jones, Modeling of an ice-on-coil thermal energy storage system,Energy Conversion and Management, Volume 37, Issue 10,1996, Pages 1493-1507. https://doi.org/10.1016/0196-8904(95)00224-3.</p>
 <p><b><span style=\"font-family: Arial; font-size: 10pt;\">Note</span></b>: This model was built based on the Library of Buildings 7.0.0.and Modelica 3.2.2.</p>
 </html>", revisions="<html>
 
