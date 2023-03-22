@@ -42,8 +42,8 @@ Integer|$N$|$48$|Number of tubes in pararll
 Length|$L$|$150$|The length of the tube $[m]$
 Radius|$r_i$|$11e^{-3}$|The inner tube inner diameter $[m]$
 Radius|$r_o$|$14.25e^{-3}$|The inner tube outer diameter $[m]$
-Volume|$V_t$|$6*2.8*2.8$|The volume of the tank $[m^3]$
-Area|$A_{cross}$|$2.8*2.8$|The Area of the tank that water flow through $[m^2]$
+Volume|$V_t$|$6 \times 2.8 \times 2.8$|The volume of the tank $[m^3]$
+Area|$A_{cross}$|$2.8 \times 2.8$|The Area of the tank that water flow through $[m^2]$
 ThermalConductivity|$k_l$|$15$|Thermal conductivity of tube $[W/(m.K)]$
 Temperature|$T_m$|$273.15$|Freezing temperature of water $[K]$
 ThermalConductivity|k|$2.22$|Thermal conductivity of ice $[W/(m.K)]$
