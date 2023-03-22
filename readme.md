@@ -38,7 +38,7 @@ During the discharging process, the mass of ice and the cooling energy stored ca
 # Parameter
 |Type|Name|Default|Description|
 |:---|:---:|:---:|:---|
-Integer|$N$|$48$|Number of tubes in pararll
+Integer|$N$|$48$|Number of tubes in parallel
 Length|$L$|$150$|The length of the tube $[m]$
 Radius|$r_i$|$11e^{-3}$|The inner tube inner diameter $[m]$
 Radius|$r_o$|$14.25e^{-3}$|The inner tube outer diameter $[m]$
